@@ -4,7 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import { IoAddOutline } from "react-icons/io5";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
-import SearchedBlogCard from "../components/Blog/searchedBlogCard";
+import SearchedBlogCard from "../components/Blog/SearchedBlogCard";
 import { IoMdClose } from "react-icons/io";
 
 interface Blog {
