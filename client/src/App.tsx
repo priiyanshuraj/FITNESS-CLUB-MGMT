@@ -26,6 +26,8 @@ import ProductIndividualCard from "./components/shopping/ProductShop/ProductIndi
 import Cart from "./components/shopping/Cart/cart";
 import CreateOrder from "./components/shopping/Cart/CreateOrder";
 import Orders from "./components/shopping/Cart/Orders";
+import AddPayment from "./pages/Payments/AddPayment";
+import PaymentHistory from "./pages/Payments/PaymentHistory";
 
 function App() {
   const [menu, setMenu] = useState(false);
@@ -84,7 +86,11 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/orders/create" element={<CreateOrder />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/payments/add" element={<AddPayment />} />
+        <Route path="/payments/history" element={<PaymentHistory />} />
+
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </Router>
   );

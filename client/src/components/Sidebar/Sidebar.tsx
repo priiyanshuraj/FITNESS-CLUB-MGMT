@@ -6,8 +6,13 @@ import { SiGnuprivacyguard } from "react-icons/si";
 import { CgProfile } from "react-icons/cg";
 import { BsChatSquareDots } from "react-icons/bs";
 import { RiContactsBook3Fill } from "react-icons/ri";
+import { useState } from "react";
+import { MdPayments } from "react-icons/md";
+
 
 const Sidebar = () => {
+   const [openPayments, setOpenPayments] = useState(false);
+
    return (
       <div
          className={`${styles.sideBar} w-24 fixed overflow-hidden top-16 z-10 bottom-0 left-0	hover:w-40 hover:visible `}
@@ -97,6 +102,39 @@ const Sidebar = () => {
                      </div>
                   </NavLink>
                </li>
+               <li>
+                  <div
+                     onClick={() => setOpenPayments(!openPayments)}
+                     className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center cursor-pointer`}
+                  >
+                     <span className={`${styles.sideIcon} text-2xl`}>
+                        <MdPayments />
+                     </span>
+                     <span className={`${styles.sideText}`}>Payments</span>
+                  </div>
+
+                  {openPayments && (
+                     <ul className="ml-6 flex flex-col gap-2 text-sm">
+                        <li>
+                           <NavLink
+                              to="/payments/add"
+                              className={({ isActive }) => (isActive ? "font-bold" : "")}
+                           >
+                              Add Payment
+                           </NavLink>
+                        </li>
+                        <li>
+                           <NavLink
+                              to="/payments/history"
+                              className={({ isActive }) => (isActive ? "font-bold" : "")}
+                           >
+                              Payment History
+                           </NavLink>
+                        </li>
+                     </ul>
+                  )}
+               </li>
+
                <li>
                   <NavLink
                      to="/chats"

@@ -14,6 +14,10 @@ import contactRoutes from "./routes/contactRoutes/contactRoute";
 import cors from "cors";
 import morgan from "morgan";
 import Message from "./models/chatModel/chat";
+import paymentRoutes from "./routes/paymentRoutes";
+
+
+
 
 dotenv.config();
 connectDB();
@@ -82,6 +86,7 @@ app.use("/api/shoppingRoutes", productRoutes);
 app.use("/api/shoppingRoutes/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API is running...");
