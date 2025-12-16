@@ -2,6 +2,11 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
+type JwtPayload = {
+  id: string;
+  role: "admin" | "user";
+};
+
 const Security = () => {
   const [user, setUser] = useState({
     email: "",
@@ -9,15 +14,30 @@ const Security = () => {
     id: "", // Store userId
   });
 
-  // Function to get user ID from JWT
+  // Function to get user ID from JWT / localStorage
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Get token from localStorage (or cookies)
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser((prev) => ({
+          ...prev,
+          id: parsed.id || prev.id,
+          email: parsed.email || prev.email,
+        }));
+      } catch (e) {
+        console.error("Failed to parse stored user", e);
+      }
+    }
+
     if (token) {
       try {
-        const decoded = jwtDecode(token); // Decode the token
+        const decoded = jwtDecode<JwtPayload>(token);
         setUser((prevUser) => ({
           ...prevUser,
-          id: decoded.userId, // Extract user ID
+          id: decoded.id, // Extract user ID from JWT
         }));
       } catch (error) {
         console.error("Invalid token:", error);
@@ -26,23 +46,33 @@ const Security = () => {
   }, []);
 
   const handleSave = async () => {
-    if (!user.email || !user.password) {
-      alert("Please fill in all fields");
+    if (!user.password) {
+      alert("Please enter a new password");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token || !user.id) {
+      alert("Not authorized");
       return;
     }
 
     try {
-      console.log("id:" + user.id);
       const response = await axios.patch(
-        `http://localhost:5000/api/users/${user.id}`,
+        `http://localhost:5000/api/users/${user.id}/password`,
         {
-          email: user.email,
           password: user.password,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       if (response.status === 200) {
         alert("Password updated successfully!");
+        setUser((prev) => ({ ...prev, password: "" }));
       }
     } catch (error) {
       console.error("Error updating user:", error);
@@ -51,11 +81,10 @@ const Security = () => {
   };
 
   const handleCancel = () => {
-    setUser({
-      email: "",
+    setUser((prev) => ({
+      ...prev,
       password: "",
-      id: user.id, // Preserve user ID
-    });
+    }));
   };
 
   return (
