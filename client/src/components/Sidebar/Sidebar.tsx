@@ -6,12 +6,26 @@ import { SiGnuprivacyguard } from "react-icons/si";
 import { CgProfile } from "react-icons/cg";
 import { BsChatSquareDots } from "react-icons/bs";
 import { RiContactsBook3Fill } from "react-icons/ri";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MdPayments } from "react-icons/md";
-
 
 const Sidebar = () => {
    const [openPayments, setOpenPayments] = useState(false);
+
+   // ✅ Derive auth + role from localStorage (no prop drilling)
+   const { isLoggedIn, isAdmin } = useMemo(() => {
+      try {
+         const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+         const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+         const user = storedUser ? JSON.parse(storedUser) : null;
+         return {
+            isLoggedIn: Boolean(token),
+            isAdmin: user?.role === "admin",
+         };
+      } catch {
+         return { isLoggedIn: false, isAdmin: false };
+      }
+   }, []);
 
    return (
       <div
@@ -56,36 +70,58 @@ const Sidebar = () => {
                      </div>
                   </NavLink>
                </li>
-               <li>
-                  <NavLink
-                     to="/login"
-                     className={({ isActive }) => (isActive ? "font-bold" : "")}
-                  >
-                     <div
-                        className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center`}
+               {!isLoggedIn && (
+                  <>
+                     <li>
+                        <NavLink
+                           to="/login"
+                           className={({ isActive }) => (isActive ? "font-bold" : "")}
+                        >
+                           <div
+                              className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center`}
+                           >
+                              <span className={`${styles.sideIcon} text-2xl`}>
+                                 <IoLogIn />
+                              </span>
+                              <span className={`${styles.sideText}`}>Login</span>
+                           </div>
+                        </NavLink>
+                     </li>
+                     <li>
+                        <NavLink
+                           to="/signup"
+                           className={({ isActive }) => (isActive ? "font-bold" : "")}
+                        >
+                           <div
+                              className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center`}
+                           >
+                              <span className={`${styles.sideIcon} text-2xl`}>
+                                 <SiGnuprivacyguard />
+                              </span>
+                              <span className={`${styles.sideText}`}>SignUp</span>
+                           </div>
+                        </NavLink>
+                     </li>
+                  </>
+               )}
+
+               {isLoggedIn && (
+                  <li>
+                     <NavLink
+                        to="/profile"
+                        className={({ isActive }) => (isActive ? "font-bold" : "")}
                      >
-                        <span className={`${styles.sideIcon} text-2xl`}>
-                           <IoLogIn />
-                        </span>
-                        <span className={`${styles.sideText}`}>Login</span>
-                     </div>
-                  </NavLink>
-               </li>
-               <li>
-                  <NavLink
-                     to="/signup"
-                     className={({ isActive }) => (isActive ? "font-bold" : "")}
-                  >
-                     <div
-                        className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center`}
-                     >
-                        <span className={`${styles.sideIcon} text-2xl`}>
-                           <SiGnuprivacyguard />
-                        </span>
-                        <span className={`${styles.sideText}`}>SignUp</span>
-                     </div>
-                  </NavLink>
-               </li>
+                        <div
+                           className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center`}
+                        >
+                           <span className={`${styles.sideIcon} text-2xl`}>
+                              <CgProfile />
+                           </span>
+                           <span className={`${styles.sideText}`}>Profile</span>
+                        </div>
+                     </NavLink>
+                  </li>
+               )}
 
                <li>
                   <NavLink
@@ -102,38 +138,40 @@ const Sidebar = () => {
                      </div>
                   </NavLink>
                </li>
-               <li>
-                  <div
-                     onClick={() => setOpenPayments(!openPayments)}
-                     className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center cursor-pointer`}
-                  >
-                     <span className={`${styles.sideIcon} text-2xl`}>
-                        <MdPayments />
-                     </span>
-                     <span className={`${styles.sideText}`}>Payments</span>
-                  </div>
+               {isAdmin && (
+                  <li>
+                     <div
+                        onClick={() => setOpenPayments(!openPayments)}
+                        className={`${styles.sideHover} my-2 flex gap-3 items-center justify-center cursor-pointer`}
+                     >
+                        <span className={`${styles.sideIcon} text-2xl`}>
+                           <MdPayments />
+                        </span>
+                        <span className={`${styles.sideText}`}>Payments</span>
+                     </div>
 
-                  {openPayments && (
-                     <ul className="ml-6 flex flex-col gap-2 text-sm">
-                        <li>
-                           <NavLink
-                              to="/payments/add"
-                              className={({ isActive }) => (isActive ? "font-bold" : "")}
-                           >
-                              Add Payment
-                           </NavLink>
-                        </li>
-                        <li>
-                           <NavLink
-                              to="/payments/history"
-                              className={({ isActive }) => (isActive ? "font-bold" : "")}
-                           >
-                              Payment History
-                           </NavLink>
-                        </li>
-                     </ul>
-                  )}
-               </li>
+                     {openPayments && (
+                        <ul className="ml-6 flex flex-col gap-2 text-sm">
+                           <li>
+                              <NavLink
+                                 to="/payments/add"
+                                 className={({ isActive }) => (isActive ? "font-bold" : "")}
+                              >
+                                 Add Payment
+                              </NavLink>
+                           </li>
+                           <li>
+                              <NavLink
+                                 to="/payments/history"
+                                 className={({ isActive }) => (isActive ? "font-bold" : "")}
+                              >
+                                 Payment History
+                              </NavLink>
+                           </li>
+                        </ul>
+                     )}
+                  </li>
+               )}
 
                <li>
                   <NavLink

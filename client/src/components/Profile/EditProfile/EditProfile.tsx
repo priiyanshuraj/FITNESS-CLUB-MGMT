@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const EditProfile = () => {
+type JwtPayload = {
+  id: string;
+  role: "admin" | "user";
+};
+
+const EditProfile = ({ setProfileId }) => {
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -15,46 +20,85 @@ const EditProfile = () => {
     pincode: "",
   });
 
-  const [userid, setUserid] = useState("");
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode<{ userId: string }>(token);
-        setUserid(decoded.userId);
-      } catch (error) {
-        console.error("Invalid token:", error);
-      }
+    if (!token) return;
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const id = decoded.id;
+      setUserId(id);
+
+      // ✅ Fetch existing profile using JWT-authenticated route
+      axios
+        .get(`http://localhost:5000/api/profile/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          const { profile } = res.data;
+          if (profile) {
+            setFormData((prev) => ({
+              ...prev,
+              dob: profile.dob ? profile.dob.substring(0, 10) : "",
+              address: profile.address || "",
+              city: profile.city || "",
+              state: profile.state || "",
+              country: profile.country || "",
+              pincode: profile.pincode ? String(profile.pincode) : "",
+            }));
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load profile", err);
+        });
+    } catch (error) {
+      console.error("Invalid token:", error);
     }
-    console.log("userid: " + userid);
   }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async () => {
-    try {
-      if (!userid) {
-        console.error("User ID not found");
-        return;
+  const handleSave = async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!token || !userId) return;
+
+    await axios.put(
+      `http://localhost:5000/api/profile/${userId}`,
+      {
+        dob: formData.dob,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        pincode: formData.pincode ? Number(formData.pincode) : undefined,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-      const response = await axios.put(
-        ` http://localhost:5000/api/profile/${userid}`,
-        formData
-      );
-      alert("success");
-      console.log("Profile updated:", response.data);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    }
+    );
+
+    alert("Profile updated");
+    setProfileId(0);
   };
 
-  const handleCancel = () => {};
+  const handleCancel = () => {
+    setProfileId(0);
+  };
+
 
   return (
-    <div className="flex flex-col items-center pt-6 sm:pt-8 w-full px-4 sm:px-36">
+    <form
+      onSubmit={handleSave}
+      className="flex flex-col items-center pt-6 sm:pt-8 w-full px-4 sm:px-36"
+    >
       <h2 className="text-center text-xl sm:text-3xl font-serif mb-3 sm:mb-12">
         EDIT PROFILE
       </h2>
@@ -127,7 +171,7 @@ const EditProfile = () => {
 
       <div className="w-full flex justify-around my-3">
         <button
-          onClick={handleSave}
+          type="submit"
           className="py-1 px-2 sm:px-5 mb-2 text-xs md:text-lg font-bold border border-1 border-primary-dark text-white rounded-md bg-primary-dark hover:bg-secondary-light hover:text-primary-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
           Save
@@ -139,7 +183,7 @@ const EditProfile = () => {
           Cancel
         </button>
       </div>
-    </div>
+    </form>
   );
 };
 

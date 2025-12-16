@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home";
@@ -28,11 +28,43 @@ import CreateOrder from "./components/shopping/Cart/CreateOrder";
 import Orders from "./components/shopping/Cart/Orders";
 import AddPayment from "./pages/Payments/AddPayment";
 import PaymentHistory from "./pages/Payments/PaymentHistory";
+import AdminDashboard from "./pages/AdminDashboard";
+
+// ✅ Simple auth guard using JWT in localStorage
+const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+// ✅ Admin-only guard using stored user role
+const RequireAdmin: React.FC<{ children: JSX.Element }> = ({ children }) => {
+  try {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    const user = storedUser ? JSON.parse(storedUser) : null;
+
+    if (!token || !user || user.role !== "admin") {
+      return <Navigate to="/" replace />;
+    }
+    return children;
+  } catch {
+    return <Navigate to="/" replace />;
+  }
+};
 
 function App() {
   const [menu, setMenu] = useState(false);
   const [isLoggedIn, setisLoggedIn] = useState(false);
   const [isSignedUp, setisSignedUp] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setisLoggedIn(true);
+  }, []);
+
 
   return (
     <Router>
@@ -60,7 +92,9 @@ function App() {
         <Route
           path="/profile"
           element={
-            <Profile isLoggedIn={isLoggedIn} setisLoggedIn={setisLoggedIn} />
+            <RequireAuth>
+              <Profile isLoggedIn={isLoggedIn} setisLoggedIn={setisLoggedIn} />
+            </RequireAuth>
           }
         />
         <Route path="/chats" element={<Chats userId="someUserId" />} />
@@ -86,8 +120,30 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/orders/create" element={<CreateOrder />} />
         <Route path="/orders" element={<Orders />} />
-        <Route path="/payments/add" element={<AddPayment />} />
-        <Route path="/payments/history" element={<PaymentHistory />} />
+        <Route
+          path="/payments/add"
+          element={
+            <RequireAdmin>
+              <AddPayment />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/payments/history"
+          element={
+            <RequireAdmin>
+              <PaymentHistory />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <AdminDashboard />
+            </RequireAdmin>
+          }
+        />
 
         <Route path="*" element={<NotFound />} />
 

@@ -17,7 +17,7 @@ const Profile = ({ isLoggedIn, setisLoggedIn }) => {
           setisLoggedIn={setisLoggedIn}
         />
         <div className="sm:ms-5 border-s-2 border-slate-700  sm:border-s-4 border-slate-700 w-full sm:w-10/12 max-h-screen overflow-y-scroll no-scrollbar">
-          {profileId === 0 && <EditProfile />}
+          {profileId === 0 && <EditProfile setProfileId={setProfileId} />}
           {profileId === 1 && <Security />}
           {profileId === 2 && <Role />}
         </div>

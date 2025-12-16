@@ -8,6 +8,8 @@ const ProfileNav = ({
   setisLoggedIn,
 }: {
   setProfileId: (id: number) => void;
+  isLoggedIn: boolean;
+  setisLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const handleEditProfile = (id: number) => {
     setProfileId(id);
@@ -15,8 +17,9 @@ const ProfileNav = ({
   const navigate = useNavigate();
 
   const handleLogOut = () => {
+    // ✅ Clear auth data so user is fully logged out
     localStorage.removeItem("token");
-    // alert("Logged out successfully!");
+    localStorage.removeItem("user");
     setisLoggedIn(false);
     toast.success("Logged out successfully!", {
       position: "top-right",
@@ -40,7 +43,7 @@ const ProfileNav = ({
         <div className="w-fit flex sm:flex-col gap-5 mx-auto sm:w-full sm:w-full">
           <Button label={"Edit "} onClick={() => handleEditProfile(0)} />
           <Button label={"Security"} onClick={() => handleEditProfile(1)} />
-          {/* <Button label={"Role"} onClick={() => handleEditProfile(2)} /> */}
+          {/* Role tab is currently unused; can be enabled later if needed */}
           {isLoggedIn && <Button label={"Logout"} onClick={handleLogOut} />}
           <ToastContainer />
         </div>
